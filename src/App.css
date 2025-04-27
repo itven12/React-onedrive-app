@@ -1,0 +1,41 @@
+header {
+  text-align: center;
+}
+
+.login-button {
+  display: block;
+  margin: 1rem auto;
+}
+
+.user-info {
+  text-align: center;
+  margin: 1rem auto;
+}
+
+.file-list-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* align-items: center; */
+  width: 80%;
+  margin: 1rem auto;
+  list-style: none;
+  padding: 0;
+  border-radius: 11px;
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 1rem;
+  position: relative;
+}
+
+.navigation {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  border-radius: 11px;
+  padding: 3px;
+}
+
+.navigation:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
