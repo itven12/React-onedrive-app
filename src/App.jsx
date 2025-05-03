@@ -1,40 +1,32 @@
 import React from "react";
-import SearchBar from "./components/SearchBar/SearchBar.jsx";
-import FileList from "./components/FileList/FileList.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import { useMsal } from "@azure/msal-react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import "./App.css";
 
 export default function App() {
-  const [account, setAccount] = React.useState(
-    JSON.parse(localStorage.getItem("account")) || null
-  );
+  const [account, setAccount] = React.useState(null);
   const [files, setFiles] = React.useState([]);
   const [fileName, setFileName] = React.useState("");
   const [parentFolderStack, setParentFolderStack] = React.useState([]);
   const { instance } = useMsal();
+  const [allFiles, setAllFiles] = React.useState([]);
 
   React.useEffect(() => {
     if (!account) return;
     fetchOneDriveFiles();
   }, [account]);
 
-  function handleLogin() {
-    instance
-      .loginPopup({
-        scopes: ["User.Read", "Files.Read.All"],
-      })
-      .then((res) => {
-        console.log(res);
-        const user = {
-          name: res.account.name,
-          username: res.account.username,
-          accessToken: res.accessToken,
-        };
-        setAccount(user);
-        localStorage.setItem("account", JSON.stringify(user));
-      })
-      .catch((err) => console.log(err));
-  }
+  React.useEffect(() => {
+    console.log(allFiles);
+  }, [allFiles]);
 
   function navigationBack() {
     const prevFolderId = [...parentFolderStack].pop();
@@ -61,12 +53,17 @@ export default function App() {
       setParentFolderStack((prev) => [...prev, parentId]);
     }
     console.log(data);
+    if (allFiles.length === 0) {
+      loadAllFiles();
+    }
   }
 
-  async function searchFiles() {
+  async function loadAllFiles(folderId = null) {
     const token = account.accessToken;
     const res = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/root/search(q=${`'${fileName}'`})`,
+      `https://graph.microsoft.com/v1.0/me/drive/${
+        folderId ? `items/${folderId}` : "root"
+      }/children`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -74,7 +71,34 @@ export default function App() {
       }
     );
     const data = await res.json();
-    setFiles(data.value);
+    console.log(data);
+    setAllFiles((prevAllFiles) => [...prevAllFiles, ...data.value]);
+    for (const items of data.value) {
+      if (items.folder) {
+        await loadAllFiles(items.id);
+      }
+    }
+    console.log(allFiles);
+  }
+
+  async function searchFiles() {
+    if (!fileName) return;
+    // const token = account.accessToken;
+    // const res = await fetch(
+    //   `https://graph.microsoft.com/v1.0/me/drive/root/search(q=${`'${fileName}'`})`,
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   }
+    // );
+    // const data = await res.json();
+    // setFiles(data.value);
+    // console.log(data, fileName);
+    const filteredFiles = allFiles.filter((file) =>
+      file.name.toLowerCase().includes(fileName.toLowerCase())
+    );
+    setFiles(filteredFiles);
   }
 
   return (
@@ -82,46 +106,30 @@ export default function App() {
       <header>
         <h1>Onedrive File Search</h1>
       </header>
-      <main>
-        <SearchBar setFileName={setFileName} handleSearch={searchFiles} />
-        {!account && (
-          <button className="login-button" onClick={handleLogin}>
-            Login with Microsoft
-          </button>
-        )}{" "}
-        {account && (
-          <div className="user-info">
-            <p>
-              {" "}
-              Welcome {account.name} ({account.username}){" "}
-            </p>
-          </div>
-        )}
-        <ul className="file-list-container">
-          <div className="navigation" onClick={navigationBack}>
-            <img className="back-navigation" src="icon-back.png" />
-          </div>
-          <li className="file-list-header">
-            <p className="file-name">Name</p>
-            <p className="file-name">Modified</p>
-            <p className="file-name">File size</p>
-          </li>
 
-          {files.length > 0 ? (
-            files.map((file) => (
-              <FileList
-                key={file.id}
-                file={file}
-                fetchOneDriveFiles={fetchOneDriveFiles}
-              />
-            ))
-          ) : (
-            <div className="no-files">
-              <img className="no-files-icon" src="icon-empty-folder.png" />
-              <p className="no-files-text">The folder is empty</p>
-            </div>
-          )}
-        </ul>
+      <main>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/"
+              element={<LoginPage account={account} setAccount={setAccount} />}
+            />
+            <Route
+              path="/home"
+              element={
+                <HomePage
+                  account={account}
+                  setAccount={setAccount}
+                  files={files}
+                  fetchOneDriveFiles={fetchOneDriveFiles}
+                  navigationBack={navigationBack}
+                  setFileName={setFileName}
+                  searchFiles={searchFiles}
+                />
+              }
+            />
+          </Routes>
+        </BrowserRouter>
       </main>
     </>
   );
