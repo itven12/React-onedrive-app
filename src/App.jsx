@@ -83,18 +83,6 @@ export default function App() {
 
   async function searchFiles() {
     if (!fileName) return;
-    // const token = account.accessToken;
-    // const res = await fetch(
-    //   `https://graph.microsoft.com/v1.0/me/drive/root/search(q=${`'${fileName}'`})`,
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   }
-    // );
-    // const data = await res.json();
-    // setFiles(data.value);
-    // console.log(data, fileName);
     const filteredFiles = allFiles.filter((file) =>
       file.name.toLowerCase().includes(fileName.toLowerCase())
     );
