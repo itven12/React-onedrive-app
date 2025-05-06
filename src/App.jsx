@@ -34,46 +34,44 @@ export default function App() {
     setParentFolderStack((prev) => prev.slice(0, -1));
   }
 
-  async function fetchOneDriveFiles(folderId = null, parentId = null) {
-    const token = account.accessToken;
-
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/${
-        folderId ? `items/${folderId}` : "root"
-      }/children`,
+  async function fetchFiles(folderId, token) {
+    const res = await fetch(
+      `http://localhost:3000/api/auth/files/${folderId || ""}`,
       {
+        method: "GET",
+
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }
     );
-    const data = await response.json();
-    setFiles(data.value);
+    const data = await res.json();
+    return data.data;
+  }
+
+  async function fetchOneDriveFiles(folderId = null, parentId = null) {
+    // const token = account.accessToken;
+
+    const token = localStorage.getItem("token");
+    const files = await fetchFiles(folderId, token);
+    setFiles(files);
+    console.log(files);
     if (parentId) {
       setParentFolderStack((prev) => [...prev, parentId]);
     }
-    console.log(data);
+    // console.log(data);
     if (allFiles.length === 0) {
       loadAllFiles();
     }
   }
 
   async function loadAllFiles(folderId = null) {
-    const token = account.accessToken;
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/${
-        folderId ? `items/${folderId}` : "root"
-      }/children`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await res.json();
-    console.log(data);
-    setAllFiles((prevAllFiles) => [...prevAllFiles, ...data.value]);
-    for (const items of data.value) {
+    const token = localStorage.getItem("token");
+    const files = await fetchFiles(folderId, token);
+    console.log(files);
+    setAllFiles((prevAllFiles) => [...prevAllFiles, ...files]);
+    for (const items of files) {
       if (items.folder) {
         await loadAllFiles(items.id);
       }
@@ -82,23 +80,20 @@ export default function App() {
   }
 
   async function searchFiles() {
-    if (!fileName) return;
-    // const token = account.accessToken;
-    // const res = await fetch(
-    //   `https://graph.microsoft.com/v1.0/me/drive/root/search(q=${`'${fileName}'`})`,
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   }
-    // );
-    // const data = await res.json();
-    // setFiles(data.value);
-    // console.log(data, fileName);
+    if (!fileName) return fetchOneDriveFiles();
     const filteredFiles = allFiles.filter((file) =>
       file.name.toLowerCase().includes(fileName.toLowerCase())
     );
     setFiles(filteredFiles);
+  }
+
+  function resetData() {
+    localStorage.removeItem("token");
+    setFileName("");
+    setAllFiles([]);
+    setParentFolderStack([]);
+    setFiles([]);
+    setAccount(null);
   }
 
   return (
@@ -125,6 +120,7 @@ export default function App() {
                   navigationBack={navigationBack}
                   setFileName={setFileName}
                   searchFiles={searchFiles}
+                  resetData={resetData}
                 />
               }
             />

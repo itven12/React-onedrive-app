@@ -9,6 +9,11 @@ export default function SearchBar({ setFileName, handleSearch }) {
         name="fileName"
         className="file-name-input"
         onChange={(event) => setFileName(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            handleSearch();
+          }
+        }}
       />
       <button className="search-button" type="submit" onClick={handleSearch}>
         Search
