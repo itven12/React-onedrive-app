@@ -61,9 +61,6 @@ export default function App() {
       setParentFolderStack((prev) => [...prev, parentId]);
     }
     // console.log(data);
-    if (allFiles.length === 0) {
-      loadAllFiles();
-    }
   }
 
   async function loadAllFiles(folderId = null) {
@@ -81,6 +78,9 @@ export default function App() {
 
   async function searchFiles() {
     if (!fileName) return fetchOneDriveFiles();
+    if (allFiles.length === 0) {
+      await loadAllFiles();
+    }
     const filteredFiles = allFiles.filter((file) =>
       file.name.toLowerCase().includes(fileName.toLowerCase())
     );
