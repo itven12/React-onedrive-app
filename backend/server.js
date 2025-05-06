@@ -7,9 +7,9 @@ const { msalInstance } = require("./auth");
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const SECRET_KEY =
-  "yXqffN72sjS1qfNYr9uPXpVNK3y7a5qblHF/XvouTiXTqf9j6YVI+C/vl3OmXMsMrU1HlwV61B88PKrj/EBEFQ==";
+const PORT = process.env.PORT;
+// const process.env.SECRET_KEY =
+//   "yXqffN72sjS1qfNYr9uPXpVNK3y7a5qblHF/XvouTiXTqf9j6YVI+C/vl3OmXMsMrU1HlwV61B88PKrj/EBEFQ==";
 app.use(cors());
 app.use(express.json());
 
@@ -22,7 +22,7 @@ function authenticateToken(req, res, next) {
     });
   }
   try {
-    const verified = jwt.verify(token, SECRET_KEY);
+    const verified = jwt.verify(token, process.env.SECRET_KEY);
     req.user = verified;
     next();
   } catch (err) {
@@ -33,7 +33,7 @@ function authenticateToken(req, res, next) {
 app.post("/api/auth/login", (req, res) => {
   const user = req.body;
   console.log(user);
-  const token = jwt.sign({ ...user }, SECRET_KEY, {
+  const token = jwt.sign({ ...user }, process.env.SECRET_KEY, {
     expiresIn: "1h",
   });
   return res.status(200).json({
