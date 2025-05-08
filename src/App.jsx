@@ -54,36 +54,44 @@ export default function App() {
     // const token = account.accessToken;
 
     const token = localStorage.getItem("token");
-    const files = await fetchFiles(folderId, token);
-    setFiles(files);
+    const fetchedFiles = await fetchFiles(folderId, token);
+    setFiles(fetchedFiles);
     console.log(files);
     if (parentId) {
       setParentFolderStack((prev) => [...prev, parentId]);
+    }
+    if (allFiles.length === 0) {
+      loadAllFiles();
     }
     // console.log(data);
   }
 
   async function loadAllFiles(folderId = null) {
     const token = localStorage.getItem("token");
-    const files = await fetchFiles(folderId, token);
-    console.log(files);
-    setAllFiles((prevAllFiles) => [...prevAllFiles, ...files]);
-    for (const items of files) {
+    const fetchedFiles = await fetchFiles(folderId, token);
+    setAllFiles((prevAllFiles) => {
+      const existingIds = new Set(prevAllFiles.map((file) => file.id));
+      const uniqueFiles = fetchedFiles.filter(
+        (file) => !existingIds.has(file.id)
+      );
+      return [...prevAllFiles, ...uniqueFiles];
+    });
+    for (const items of fetchedFiles) {
       if (items.folder) {
-        await loadAllFiles(items.id);
+        loadAllFiles(items.id);
       }
     }
-    console.log(allFiles);
   }
 
-  async function searchFiles() {
+  function searchFiles() {
     if (!fileName) return fetchOneDriveFiles();
-    if (allFiles.length === 0) {
-      await loadAllFiles();
-    }
-    const filteredFiles = allFiles.filter((file) =>
-      file.name.toLowerCase().includes(fileName.toLowerCase())
-    );
+
+    const searchQueries = fileName.split(" ");
+    const filteredFiles = allFiles.filter((file) => {
+      return searchQueries.every((query) =>
+        file.name.toLowerCase().includes(query.toLowerCase())
+      );
+    });
     setFiles(filteredFiles);
   }
 
