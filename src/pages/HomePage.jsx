@@ -12,6 +12,7 @@ export default function HomePage({
   setFileName,
   searchFiles,
   session,
+  resetData,
 }) {
   const navigate = useNavigate();
 
@@ -24,10 +25,7 @@ export default function HomePage({
   }, []);
 
   function logout() {
-    localStorage.removeItem("account");
-    localStorage.removeItem("token");
-    setFileName("");
-    setAccount(null);
+    resetData();
     navigate("/");
   }
   return (

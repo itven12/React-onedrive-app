@@ -110,6 +110,15 @@ export default function App() {
     setFiles(filteredFiles);
   }
 
+  function resetData() {
+    localStorage.clear();
+    setFileName("");
+    setAllFiles([]);
+    setParentFolderStack([]);
+    setFiles([]);
+    setAccount(null);
+  }
+
   return (
     <>
       <header>
@@ -141,6 +150,7 @@ export default function App() {
                   setFileName={setFileName}
                   searchFiles={searchFiles}
                   session={session}
+                  resetData={resetData}
                 />
               }
             />
