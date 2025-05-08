@@ -1,3 +1,4 @@
+import React from "react";
 import SearchBar from "../components/SearchBar/SearchBar.jsx";
 import FileList from "../components/FileList/FileList.jsx";
 import { useNavigate } from "react-router-dom";
@@ -10,8 +11,17 @@ export default function HomePage({
   navigationBack,
   setFileName,
   searchFiles,
+  session,
 }) {
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!session.isLoggedIn()) {
+      navigate("/");
+    } else {
+      setAccount(JSON.parse(localStorage.getItem("account")));
+    }
+  }, []);
 
   function logout() {
     localStorage.removeItem("account");
@@ -24,10 +34,12 @@ export default function HomePage({
     <>
       <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
       <div className="user-info">
-        <p>
-          {" "}
-          Welcome {account.name} ({account.username}){" "}
-        </p>
+        {account && (
+          <p>
+            {" "}
+            Welcome {account.name} ({account.username}){" "}
+          </p>
+        )}
         <button className="logout-button" onClick={logout}>
           Logout
         </button>

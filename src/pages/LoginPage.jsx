@@ -1,10 +1,11 @@
 import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
-export default function LoginPage({ account, setAccount }) {
+export default function LoginPage({ account, setAccount, session }) {
   const { instance } = useMsal();
   const navigate = useNavigate();
 
-  if (account) {
+  if (session.isLoggedIn()) {
+    setAccount(JSON.parse(localStorage.getItem("account")));
     navigate("/home");
   }
 
@@ -21,6 +22,14 @@ export default function LoginPage({ account, setAccount }) {
           accessToken: res.accessToken,
         };
         setAccount(user);
+        localStorage.setItem("account", JSON.stringify(user));
+        localStorage.setItem("accessToken", JSON.stringify(user.accessToken));
+        const expiresOn = res.expiresOn.getTime();
+        console.log(new Date(expiresOn));
+        localStorage.setItem(
+          "expiresAt",
+          JSON.stringify(res.expiresOn.getTime())
+        );
         navigate("/home");
       })
       .catch((err) => console.log(err));

@@ -19,6 +19,17 @@ export default function App() {
   const { instance } = useMsal();
   const [allFiles, setAllFiles] = React.useState([]);
 
+  const session = {
+    isLoggedIn: () => {
+      const token = localStorage.getItem("accessToken");
+      const expiresAt = new Date(Number(localStorage.getItem("expiresAt")));
+      return token && expiresAt > new Date();
+    },
+    getAccessToken: () => {
+      return localStorage.getItem("accessToken");
+    },
+  };
+
   React.useEffect(() => {
     if (!account) return;
     fetchOneDriveFiles();
@@ -71,21 +82,31 @@ export default function App() {
       }
     );
     const data = await res.json();
-    console.log(data);
-    setAllFiles((prevAllFiles) => [...prevAllFiles, ...data.value]);
+    setAllFiles((prevAllFiles) => {
+      const existingIds = new Set(prevAllFiles.map((file) => file.id));
+      const uniqueFiles = data.value.filter(
+        (file) => !existingIds.has(file.id)
+      );
+      return [...prevAllFiles, ...uniqueFiles];
+    });
     for (const items of data.value) {
       if (items.folder) {
-        await loadAllFiles(items.id);
+        loadAllFiles(items.id);
       }
     }
+
     console.log(allFiles);
   }
 
   async function searchFiles() {
     if (!fileName) return fetchOneDriveFiles();
-    const filteredFiles = allFiles.filter((file) =>
-      file.name.toLowerCase().includes(fileName.toLowerCase())
-    );
+
+    const searchQueries = fileName.split(" ");
+    const filteredFiles = allFiles.filter((file) => {
+      return searchQueries.every((query) =>
+        file.name.toLowerCase().includes(query.toLowerCase())
+      );
+    });
     setFiles(filteredFiles);
   }
 
@@ -100,7 +121,13 @@ export default function App() {
           <Routes>
             <Route
               path="/"
-              element={<LoginPage account={account} setAccount={setAccount} />}
+              element={
+                <LoginPage
+                  account={account}
+                  setAccount={setAccount}
+                  session={session}
+                />
+              }
             />
             <Route
               path="/home"
@@ -113,6 +140,7 @@ export default function App() {
                   navigationBack={navigationBack}
                   setFileName={setFileName}
                   searchFiles={searchFiles}
+                  session={session}
                 />
               }
             />
