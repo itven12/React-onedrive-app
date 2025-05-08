@@ -47,12 +47,13 @@ export default function App() {
       }
     );
     const data = await res.json();
+    if (!data.success && data.status >= 500) {
+      return alert(data.message + " Please refresh the page.");
+    }
     return data.data;
   }
 
   async function fetchOneDriveFiles(folderId = null, parentId = null) {
-    // const token = account.accessToken;
-
     const token = localStorage.getItem("token");
     const fetchedFiles = await fetchFiles(folderId, token);
     setFiles(fetchedFiles);
@@ -63,7 +64,6 @@ export default function App() {
     if (allFiles.length === 0) {
       loadAllFiles();
     }
-    // console.log(data);
   }
 
   async function loadAllFiles(folderId = null) {

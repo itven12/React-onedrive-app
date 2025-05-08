@@ -32,6 +32,10 @@ export default function HomePage({
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
+        if (!data.success) {
+          alert(data.message + " Please login again.");
+          navigate("/");
+        }
         setAccount(data.data);
       });
   }, []);

@@ -56,6 +56,9 @@ export default function LoginPage({ account, setAccount }) {
     const data = await response.json();
     console.log(data);
     // localStorage.setItem("account", JSON.stringify(data.data));
+    if (!data.success) {
+      return alert("Login failed. Please try again.");
+    }
     localStorage.setItem("token", data.token);
     navigate("/home");
   }

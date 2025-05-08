@@ -33,15 +33,22 @@ function authenticateToken(req, res, next) {
 app.post("/api/auth/login", (req, res) => {
   const user = req.body;
   console.log(user);
-  const token = jwt.sign({ ...user }, process.env.SECRET_KEY, {
-    expiresIn: "1h",
-  });
-  return res.status(200).json({
-    success: true,
-    message: "Login successful",
-    data: user,
-    token,
-  });
+  try {
+    const token = jwt.sign({ ...user }, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: user,
+      token,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error logging in",
+    });
+  }
 });
 
 app.get("/api/auth/user", authenticateToken, (req, res) => {
@@ -109,6 +116,7 @@ app.get("/api/auth/files/:id", authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching files",
+      status: 500,
     });
   }
 });
