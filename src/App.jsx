@@ -135,7 +135,7 @@ export default function App() {
       </header>
 
       <main>
-        <BrowserRouter>
+        <BrowserRouter basename="/React-onedrive-app/">
           <Routes>
             <Route
               path="/"
