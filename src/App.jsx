@@ -48,22 +48,28 @@ export default function App() {
   async function fetchOneDriveFiles(folderId = null, parentId = null) {
     const token = account.accessToken;
 
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/${
-        folderId ? `items/${folderId}` : "root"
-      }/children`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    setFiles(data.value);
+    try {
+      const response = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/${
+          folderId ? `items/${folderId}` : "root"
+        }/children`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+      setFiles(data.value);
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+
     if (parentId) {
       setParentFolderStack((prev) => [...prev, parentId]);
     }
-    console.log(data);
+
     if (allFiles.length === 0) {
       loadAllFiles();
     }
@@ -71,28 +77,32 @@ export default function App() {
 
   async function loadAllFiles(folderId = null) {
     const token = account.accessToken;
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/${
-        folderId ? `items/${folderId}` : "root"
-      }/children`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await res.json();
-    setAllFiles((prevAllFiles) => {
-      const existingIds = new Set(prevAllFiles.map((file) => file.id));
-      const uniqueFiles = data.value.filter(
-        (file) => !existingIds.has(file.id)
+    try {
+      const res = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/${
+          folderId ? `items/${folderId}` : "root"
+        }/children`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      return [...prevAllFiles, ...uniqueFiles];
-    });
-    for (const items of data.value) {
-      if (items.folder) {
-        loadAllFiles(items.id);
+      const data = await res.json();
+      setAllFiles((prevAllFiles) => {
+        const existingIds = new Set(prevAllFiles.map((file) => file.id));
+        const uniqueFiles = data.value.filter(
+          (file) => !existingIds.has(file.id)
+        );
+        return [...prevAllFiles, ...uniqueFiles];
+      });
+      for (const items of data.value) {
+        if (items.folder) {
+          loadAllFiles(items.id);
+        }
       }
+    } catch (err) {
+      console.error("Error fetching files:", err);
     }
 
     console.log(allFiles);
@@ -100,7 +110,6 @@ export default function App() {
 
   async function searchFiles() {
     if (!fileName) return fetchOneDriveFiles();
-
     const searchQueries = fileName.split(" ");
     const filteredFiles = allFiles.filter((file) => {
       return searchQueries.every((query) =>

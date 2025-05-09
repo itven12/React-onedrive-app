@@ -19,6 +19,7 @@ export default function HomePage({
   React.useEffect(() => {
     if (!session.isLoggedIn()) {
       navigate("/");
+      resetData();
     } else {
       setAccount(JSON.parse(localStorage.getItem("account")));
     }
