@@ -10,6 +10,17 @@ header {
 .user-info {
   text-align: center;
   margin: 1rem auto;
+  font-weight: 500;
+}
+
+.user-info > p {
+  font-size: 1.3rem;
+}
+
+.logout-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 .file-list-container {
@@ -22,9 +33,11 @@ header {
   list-style: none;
   padding: 0;
   border-radius: 11px;
-  background-color: rgba(255, 255, 255, 0.3);
+  /* background-color: rgba(255, 255, 255, 0.3); */
+  background-color: rgba(255, 255, 255, 0.9);
   padding: 1rem;
   position: relative;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5), -1px -1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .navigation {
@@ -39,3 +52,7 @@ header {
   background-color: rgba(255, 255, 255, 0.9);
 }
 
+.hidden {
+  opacity: 0;
+  transform: translateY(50%);
+}

@@ -144,8 +144,6 @@ export default function App() {
     } catch (error) {
       console.error("Error searching files:", error);
     }
-
-    // };
   }
 
   function resetData() {

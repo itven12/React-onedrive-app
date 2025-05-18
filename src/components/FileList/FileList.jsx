@@ -1,8 +1,36 @@
+import React from "react";
 import "./FileList.css";
 
 export default function FileList({ file, fetchOneDriveFiles }) {
+  const fileListEl = React.useRef(null);
+  React.useEffect(() => {
+    const element = fileListEl.current;
+    const observer = new IntersectionObserver(
+      ([entry], observer) => {
+        // const element = entry.target;
+        if (entry.isIntersecting) {
+          element.classList.remove("hidden");
+          // observer.unobserve(element);
+        } else {
+          return;
+        }
+      },
+      {
+        root: null,
+        threshold: 0.1,
+      }
+    );
+
+    // const fileListEls = document.querySelectorAll(".file-list");
+
+    observer.observe(element);
+    return () => {
+      observer.unobserve(element);
+    };
+  }, []);
+
   return (
-    <li className="file-list">
+    <li ref={fileListEl} className="file-list hidden">
       <p
         className="file-name"
         onClick={() => {

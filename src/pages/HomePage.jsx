@@ -31,18 +31,18 @@ export default function HomePage({
   }
   return (
     <>
-      <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
       <div className="user-info">
         {account && (
           <p>
             {" "}
-            Welcome {account.name} ({account.username}){" "}
+            Welcome {account.name}, ({account.username}){" "}
           </p>
         )}
-        <button className="logout-button" onClick={logout}>
-          Logout
-        </button>
       </div>
+      <button className="logout-button" onClick={logout}>
+        Logout
+      </button>
+      <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
       <ul className="file-list-container">
         <div className="navigation" onClick={navigationBack}>
           <img className="back-navigation" src="icon-back.png" />

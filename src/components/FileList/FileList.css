@@ -1,3 +1,7 @@
+.file-list-header {
+  font-weight: 500;
+}
+
 .file-list,
 .file-list-header {
   display: flex;
@@ -23,7 +27,8 @@
 }
 
 .file-list > .file-name:hover {
-  background-color: rgba(0, 0, 0, 0.5);
+  /* background-color: rgba(0, 0, 0, 0.5); */
+  background-color: rgb(246, 159, 159);
   cursor: pointer;
 }
 
