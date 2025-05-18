@@ -12,7 +12,7 @@ export default function LoginPage({ account, setAccount, session }) {
   function handleLogin() {
     instance
       .loginPopup({
-        scopes: ["User.Read", "Files.Read.All"],
+        scopes: ["User.Read", "Files.Read.All", "Sites.Read.All"],
       })
       .then((res) => {
         console.log(res);

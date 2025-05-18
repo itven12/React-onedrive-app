@@ -109,6 +109,7 @@ export default function App() {
   }
 
   async function searchFiles() {
+    const accessToken = session.getAccessToken();
     if (!fileName) return fetchOneDriveFiles();
     const searchQueries = fileName.split(" ");
     const filteredFiles = allFiles.filter((file) => {
@@ -116,7 +117,35 @@ export default function App() {
         file.name.toLowerCase().includes(query.toLowerCase())
       );
     });
-    setFiles(filteredFiles);
+    // const searchFilesByContent = async (accessToken, query) => {
+    try {
+      const response = await fetch(
+        "https://graph.microsoft.com/v1.0/search/query",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            requests: [
+              {
+                entityTypes: ["driveItem"],
+                query: { queryString: fileName },
+              },
+            ],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log(data);
+      setFiles([...filteredFiles, ...data.value]);
+    } catch (error) {
+      console.error("Error searching files:", error);
+    }
+
+    // };
   }
 
   function resetData() {
