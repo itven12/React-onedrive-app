@@ -7,6 +7,9 @@ export default function HomePage({
   account,
   setAccount,
   files,
+  allFiles,
+  setCategory,
+  setFiles,
   fetchOneDriveFiles,
   navigationBack,
   setFileName,
@@ -24,6 +27,29 @@ export default function HomePage({
       setAccount(JSON.parse(localStorage.getItem("account")));
     }
   }, []);
+
+  function handleCategoryChange(event) {
+    if (event.target === event.currentTarget) return;
+    const btnEls = document.querySelectorAll(".category-button");
+    btnEls.forEach((btn) => {
+      if (btn === event.target) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+    const category = event.target.value;
+    setCategory(category);
+    if (category === "all") {
+      fetchOneDriveFiles();
+    } else {
+      const filteredFiles = allFiles.filter((file) => {
+        return file.file?.mimeType.includes(category);
+      });
+      setFiles(filteredFiles);
+      // allFiles.forEach((file) => console.log(file.file));
+    }
+  }
 
   function logout() {
     resetData();
@@ -43,6 +69,39 @@ export default function HomePage({
         Logout
       </button>
       <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
+      <div className="categories" onClick={handleCategoryChange}>
+        <button className="category-button active" value={"all"}>
+          All
+        </button>
+        <button
+          className="category-button"
+          value={"application"}
+          // onClick={handleCategoryChange}
+        >
+          Documents
+        </button>
+        <button
+          className="category-button"
+          value={"image"}
+          // onClick={handleCategoryChange}
+        >
+          Photos
+        </button>
+        <button
+          className="category-button"
+          value={"video"}
+          // onClick={handleCategoryChange}
+        >
+          Videos
+        </button>
+        <button
+          className="category-button"
+          value={"audio"}
+          // onClick={handleCategoryChange}
+        >
+          Audio
+        </button>
+      </div>
       <ul className="file-list-container">
         <div className="navigation" onClick={navigationBack}>
           <img className="back-navigation" src="icon-back.png" />

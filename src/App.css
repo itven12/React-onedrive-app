@@ -2,6 +2,13 @@ header {
   text-align: center;
 }
 
+main {
+  max-width: 80%;
+  /*  */
+  margin: auto;
+  text-align: center;
+}
+
 .login-button {
   display: block;
   margin: 1rem auto;
@@ -21,6 +28,22 @@ header {
   position: absolute;
   top: 1rem;
   right: 1rem;
+}
+
+.categories {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.category-button {
+  margin-right: 0.5rem;
+  background-color: white;
+}
+
+.category-button.active {
+  background-color: rgb(241, 180, 180);
 }
 
 .file-list-container {

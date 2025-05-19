@@ -18,6 +18,7 @@ export default function App() {
   const [parentFolderStack, setParentFolderStack] = React.useState([]);
   const { instance } = useMsal();
   const [allFiles, setAllFiles] = React.useState([]);
+  const [category , setCategory] = React.useState("all");
 
   const session = {
     isLoggedIn: () => {
@@ -181,6 +182,9 @@ export default function App() {
                   account={account}
                   setAccount={setAccount}
                   files={files}
+                  allFiles={allFiles}
+                  setCategory={setCategory}
+                  setFiles = {setFiles}
                   fetchOneDriveFiles={fetchOneDriveFiles}
                   navigationBack={navigationBack}
                   setFileName={setFileName}
