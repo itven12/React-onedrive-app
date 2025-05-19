@@ -26,6 +26,7 @@ export default function LoginPage({ account, setAccount, session }) {
         localStorage.setItem("accessToken", JSON.stringify(user.accessToken));
         const expiresOn = res.expiresOn.getTime();
         console.log(new Date(expiresOn));
+        console.log(expiresOn);
         localStorage.setItem(
           "expiresAt",
           JSON.stringify(res.expiresOn.getTime())

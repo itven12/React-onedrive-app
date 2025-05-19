@@ -46,7 +46,13 @@ export default function HomePage({
       const filteredFiles = allFiles.filter((file) => {
         return file.file?.mimeType.includes(category);
       });
-      setFiles(filteredFiles);
+      const sortedFiles = filteredFiles.sort((file1, file2) => {
+        return (
+          new Date(file2.lastModifiedDateTime).getTime() -
+          new Date(file1.lastModifiedDateTime).getTime()
+        );
+      });
+      setFiles(sortedFiles);
       // allFiles.forEach((file) => console.log(file.file));
     }
   }
@@ -107,9 +113,9 @@ export default function HomePage({
           <img className="back-navigation" src="icon-back.png" />
         </div>
         <li className="file-list-header">
-          <p className="file-name">Name</p>
-          <p className="file-name">Modified</p>
-          <p className="file-name">File size</p>
+          <p className="file-name-header">Name</p>
+          <p className="file-modified-header">Modified</p>
+          <p className="file-size-header">File size</p>
         </li>
 
         {files.length > 0 ? (

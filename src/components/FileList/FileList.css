@@ -2,6 +2,12 @@
   font-weight: 500;
 }
 
+.file-list-header > p {
+  text-align: center;
+  width: 100%;
+  flex: 1;
+}
+
 .file-list,
 .file-list-header {
   display: flex;
