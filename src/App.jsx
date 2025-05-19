@@ -110,50 +110,23 @@ export default function App() {
   }
 
   async function searchFiles() {
-    const accessToken = session.getAccessToken();
-    if (!fileName) return fetchOneDriveFiles();
-    const searchQueries = fileName.split(" ");
-    const filteredFiles = allFiles.filter((file) => {
-      return searchQueries.every((query) =>
-        file.name.toLowerCase().includes(query.toLowerCase())
-      );
-    });
-    // const searchFilesByContent = async (accessToken, query) => {
-    try {
-      const response = await fetch(
-        "https://graph.microsoft.com/v1.0/search/query",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            requests: [
-              {
-                entityTypes: ["driveItem"],
-                query: { queryString: fileName },
-              },
-            ],
-          }),
-        }
-      );
-
-      const data = await response.json();
-      console.log(data);
-      setFiles([...filteredFiles, ...data.value]);
-    } catch (error) {
-      console.error("Error searching files:", error);
-    }
-  }
-
-  function resetData() {
-    localStorage.clear();
-    setFileName("");
-    setAllFiles([]);
-    setParentFolderStack([]);
-    setFiles([]);
-    setAccount(null);
+    if (!fileName) return;
+    // const token = account.accessToken;
+    // const res = await fetch(
+    //   `https://graph.microsoft.com/v1.0/me/drive/root/search(q=${`'${fileName}'`})`,
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   }
+    // );
+    // const data = await res.json();
+    // setFiles(data.value);
+    // console.log(data, fileName);
+    const filteredFiles = allFiles.filter((file) =>
+      file.name.toLowerCase().includes(fileName.toLowerCase())
+    );
+    setFiles(filteredFiles);
   }
 
   return (
