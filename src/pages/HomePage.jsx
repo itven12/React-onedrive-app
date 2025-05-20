@@ -16,6 +16,7 @@ export default function HomePage({
   searchFiles,
   session,
   resetData,
+  loadMoreFiles,
 }) {
   const navigate = useNavigate();
 
@@ -61,6 +62,8 @@ export default function HomePage({
     resetData();
     navigate("/");
   }
+
+  // logout();
   return (
     <>
       <div className="user-info">
@@ -118,7 +121,7 @@ export default function HomePage({
           <p className="file-size-header">File size</p>
         </li>
 
-        {files.length > 0 ? (
+        {files?.length > 0 ? (
           files.map((file) => (
             <FileList
               key={file.id}
@@ -133,6 +136,11 @@ export default function HomePage({
           </div>
         )}
       </ul>
+      <div className="load-more">
+        <button className="load-more-button" onClick={loadMoreFiles}>
+          Load more files
+        </button>
+      </div>
     </>
   );
 }

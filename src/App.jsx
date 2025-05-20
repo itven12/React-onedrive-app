@@ -18,7 +18,8 @@ export default function App() {
   const [parentFolderStack, setParentFolderStack] = React.useState([]);
   const { instance } = useMsal();
   const [allFiles, setAllFiles] = React.useState([]);
-  const [category , setCategory] = React.useState("all");
+  const [category, setCategory] = React.useState("all");
+  const [nextPageUrl, setNextPageUrl] = React.useState(null);
 
   const session = {
     isLoggedIn: () => {
@@ -53,7 +54,7 @@ export default function App() {
       const response = await fetch(
         `https://graph.microsoft.com/v1.0/me/drive/${
           folderId ? `items/${folderId}` : "root"
-        }/children`,
+        }/children?$top=10`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,8 +62,9 @@ export default function App() {
         }
       );
       const data = await response.json();
-      console.log(data);
+      console.log(data , data["@odata.nextLink"]);
       setFiles(data.value);
+      setNextPageUrl(data["@odata.nextLink"]);
     } catch (err) {
       console.error("Error fetching files:", err);
     }
@@ -72,7 +74,27 @@ export default function App() {
     }
 
     if (allFiles.length === 0) {
-      loadAllFiles();
+      // loadAllFiles();
+    }
+  }
+
+  async function loadMoreFiles() {
+    const token = account.accessToken;
+    console.log("loading more files");
+    console.log(nextPageUrl);
+    if (!nextPageUrl) return;
+
+    try {
+      const res = await fetch(nextPageUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      setFiles((prevFiles) => [...prevFiles, ...data.value]);
+      setNextPageUrl(data["@odata.nextLink"] || null);
+    } catch (err) {
+      console.error("Error fetching files:", err);
     }
   }
 
@@ -113,35 +135,35 @@ export default function App() {
     const accessToken = session.getAccessToken();
     if (!fileName) return fetchOneDriveFiles();
     const searchQueries = fileName.split(" ");
-    const filteredFiles = allFiles.filter((file) => {
-      return searchQueries.every((query) =>
-        file.name.toLowerCase().includes(query.toLowerCase())
-      );
-    });
+    // const filteredFiles = files.filter((file) => {
+    //   return searchQueries.every((query) =>
+    //     file.name.toLowerCase().includes(query.toLowerCase())
+    //   );
+    // });
     // const searchFilesByContent = async (accessToken, query) => {
     try {
       const response = await fetch(
-        "https://graph.microsoft.com/v1.0/search/query",
+        `https://graph.microsoft.com/v1.0/me/drive/root/search(q='${encodeURIComponent(fileName)}')`,
         {
-          method: "POST",
+          // method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            requests: [
-              {
-                entityTypes: ["driveItem"],
-                query: { queryString: fileName },
-              },
-            ],
-          }),
+          // body: JSON.stringify({
+          //   requests: [
+          //     {
+          //       entityTypes: ["driveItem"],
+          //       query: { queryString: fileName },
+          //     },
+          //   ],
+          // }),
         }
       );
 
       const data = await response.json();
       console.log(data);
-      setFiles([...filteredFiles, ...data.value]);
+      setFiles([...data.value]);
     } catch (error) {
       console.error("Error searching files:", error);
     }
@@ -184,13 +206,14 @@ export default function App() {
                   files={files}
                   allFiles={allFiles}
                   setCategory={setCategory}
-                  setFiles = {setFiles}
+                  setFiles={setFiles}
                   fetchOneDriveFiles={fetchOneDriveFiles}
                   navigationBack={navigationBack}
                   setFileName={setFileName}
                   searchFiles={searchFiles}
                   session={session}
                   resetData={resetData}
+                  loadMoreFiles={loadMoreFiles}
                 />
               }
             />
