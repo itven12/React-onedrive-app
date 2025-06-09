@@ -59,6 +59,7 @@ export default function LoginPage({ account, setAccount }) {
     if (!data.success) {
       return alert("Login failed. Please try again.");
     }
+    localStorage.removeItem("token");
     localStorage.setItem("token", data.token);
     navigate("/home");
   }

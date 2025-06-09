@@ -14,10 +14,26 @@ import "./App.css";
 export default function App() {
   const [account, setAccount] = React.useState(null);
   const [files, setFiles] = React.useState([]);
+  const [filteredFiles, setFilteredFiles] = React.useState([]);
   const [fileName, setFileName] = React.useState("");
   const [parentFolderStack, setParentFolderStack] = React.useState([]);
   const { instance } = useMsal();
   const [allFiles, setAllFiles] = React.useState([]);
+  const [category, setCategory] = React.useState("all");
+  const [nextPageUrl, setNextPageUrl] = React.useState(null);
+  const [nextSearchUrl, setNextSearchUrl] = React.useState(null);
+  const [folderIdState, setFolderIdState] = React.useState(null);
+
+  const session = {
+    isLoggedIn: () => {
+      const token = localStorage.getItem("accessToken");
+      const expiresAt = new Date(Number(localStorage.getItem("expiresAt")));
+      return token && expiresAt > new Date();
+    },
+    getAccessToken: () => {
+      return localStorage.getItem("token");
+    },
+  };
 
   React.useEffect(() => {
     if (!account) return;
@@ -36,25 +52,32 @@ export default function App() {
 
   async function fetchFiles(folderId, token) {
     const res = await fetch(
-      `http://localhost:3000/api/auth/files/${folderId || ""}`,
+      `http://localhost:3000/api/auth/files${
+        folderId ? `/${folderId}?top=3` : "?top=3"
+      }`,
       {
         method: "GET",
 
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          nextPageUrl: nextPageUrl || "",
         },
       }
     );
     const data = await res.json();
+    console.log(data);
+    setNextPageUrl(data.data["@odata.nextLink"]);
+    console.log(data.data["@odata.nextLink"]);
     if (!data.success && data.status >= 500) {
       return alert(data.message + " Please refresh the page.");
     }
-    return data.data;
+    return data.data.value;
   }
 
   async function fetchOneDriveFiles(folderId = null, parentId = null) {
-    const token = localStorage.getItem("token");
+    const token = session.getAccessToken();
+    if (folderId) setFolderIdState(folderId);
     const fetchedFiles = await fetchFiles(folderId, token);
     setFiles(fetchedFiles);
     console.log(files);
@@ -62,8 +85,16 @@ export default function App() {
       setParentFolderStack((prev) => [...prev, parentId]);
     }
     if (allFiles.length === 0) {
-      loadAllFiles();
+      // loadAllFiles();
     }
+  }
+
+  async function loadMoreFiles() {
+    if (!nextPageUrl) return;
+    const token = session.getAccessToken();
+    setNextPageUrl(null);
+    const fetchedFiles = await fetchFiles(folderIdState, token);
+    setFiles((prevFiles) => [...prevFiles, ...fetchedFiles]);
   }
 
   async function loadAllFiles(folderId = null) {
@@ -83,16 +114,37 @@ export default function App() {
     }
   }
 
-  function searchFiles() {
+  async function searchFiles() {
     if (!fileName) return fetchOneDriveFiles();
 
-    const searchQueries = fileName.split(" ");
-    const filteredFiles = allFiles.filter((file) => {
-      return searchQueries.every((query) =>
-        file.name.toLowerCase().includes(query.toLowerCase())
-      );
-    });
-    setFiles(filteredFiles);
+    // const searchQueries = fileName.split(" ");
+    // const filteredFiles = allFiles.filter((file) => {
+    //   return searchQueries.every((query) =>
+    //     file.name.toLowerCase().includes(query.toLowerCase())
+    //   );
+    // });
+    // setFiles(filteredFiles);
+    const token = session.getAccessToken();
+    console.log("Calling search api");
+    const res = await fetch(
+      `http://localhost:3000/api/auth/search?top=25&keyword=${fileName}&folderId=${
+        folderIdState || ""
+      }`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          nexSearchUrl: nextSearchUrl || "",
+        },
+      }
+    );
+    const data = await res.json();
+    if (data.nexSearchUrl) {
+      setNextSearchUrl(data.nexSearchUrl);
+    }
+    setFilteredFiles(data.data);
+    console.log("searchdata:", data);
   }
 
   function resetData() {
@@ -129,6 +181,8 @@ export default function App() {
                   setFileName={setFileName}
                   searchFiles={searchFiles}
                   resetData={resetData}
+                  loadMoreFiles={loadMoreFiles}
+                  filteredFiles={filteredFiles}
                 />
               }
             />
