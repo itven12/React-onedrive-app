@@ -1,5 +1,7 @@
 import React from "react";
 import SearchBar from "../components/SearchBar/SearchBar.jsx";
+import FilteredFiles from "../components/FilteredFiles/FilteredFiles.jsx";
+
 import FileList from "../components/FileList/FileList.jsx";
 import { useNavigate } from "react-router-dom";
 
@@ -17,6 +19,8 @@ export default function HomePage({
   session,
   resetData,
   loadMoreFiles,
+  nextSearchUrl,
+  filteredFiles,
 }) {
   const navigate = useNavigate();
 
@@ -78,6 +82,15 @@ export default function HomePage({
         Logout
       </button>
       <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
+      <FilteredFiles
+        filteredFiles={filteredFiles}
+        fetchOneDriveFiles={fetchOneDriveFiles}
+      />
+      {nextSearchUrl && (
+        <button className="search-more-button" onClick={searchFiles}>
+          Search More
+        </button>
+      )}
       <div className="categories" onClick={handleCategoryChange}>
         <button className="category-button active" value={"all"}>
           All
