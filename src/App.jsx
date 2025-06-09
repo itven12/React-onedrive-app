@@ -1,4 +1,6 @@
 import React from "react";
+import mammoth from "mammoth";
+import pdfParse from "pdf-parse";
 import LoginPage from "./pages/LoginPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import { useMsal } from "@azure/msal-react";
@@ -15,11 +17,13 @@ export default function App() {
   const [account, setAccount] = React.useState(null);
   const [files, setFiles] = React.useState([]);
   const [fileName, setFileName] = React.useState("");
+  const [folderIdState, setFolderIdState] = React.useState(null);
   const [parentFolderStack, setParentFolderStack] = React.useState([]);
   const { instance } = useMsal();
   const [allFiles, setAllFiles] = React.useState([]);
   const [category, setCategory] = React.useState("all");
   const [nextPageUrl, setNextPageUrl] = React.useState(null);
+  const [nextSearchUrl, setNextSearchUrl] = React.useState(null);
 
   const session = {
     isLoggedIn: () => {
@@ -49,12 +53,13 @@ export default function App() {
 
   async function fetchOneDriveFiles(folderId = null, parentId = null) {
     const token = account.accessToken;
+    if (folderId) setFolderIdState(folderId);
 
     try {
       const response = await fetch(
         `https://graph.microsoft.com/v1.0/me/drive/${
           folderId ? `items/${folderId}` : "root"
-        }/children?$top=10`,
+        }/children?$top=3`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -62,7 +67,7 @@ export default function App() {
         }
       );
       const data = await response.json();
-      console.log(data , data["@odata.nextLink"]);
+      console.log(data, data["@odata.nextLink"]);
       setFiles(data.value);
       setNextPageUrl(data["@odata.nextLink"]);
     } catch (err) {
@@ -98,74 +103,58 @@ export default function App() {
     }
   }
 
-  async function loadAllFiles(folderId = null) {
-    const token = account.accessToken;
-    try {
-      const res = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/${
-          folderId ? `items/${folderId}` : "root"
-        }/children`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await res.json();
-      setAllFiles((prevAllFiles) => {
-        const existingIds = new Set(prevAllFiles.map((file) => file.id));
-        const uniqueFiles = data.value.filter(
-          (file) => !existingIds.has(file.id)
-        );
-        return [...prevAllFiles, ...uniqueFiles];
-      });
-      for (const items of data.value) {
-        if (items.folder) {
-          loadAllFiles(items.id);
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching files:", err);
-    }
-
-    console.log(allFiles);
-  }
-
   async function searchFiles() {
     const accessToken = session.getAccessToken();
     if (!fileName) return fetchOneDriveFiles();
-    const searchQueries = fileName.split(" ");
-    // const filteredFiles = files.filter((file) => {
-    //   return searchQueries.every((query) =>
-    //     file.name.toLowerCase().includes(query.toLowerCase())
-    //   );
-    // });
-    // const searchFilesByContent = async (accessToken, query) => {
-    try {
-      const response = await fetch(
-        `https://graph.microsoft.com/v1.0/me/drive/root/search(q='${encodeURIComponent(fileName)}')`,
-        {
-          // method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          // body: JSON.stringify({
-          //   requests: [
-          //     {
-          //       entityTypes: ["driveItem"],
-          //       query: { queryString: fileName },
-          //     },
-          //   ],
-          // }),
-        }
-      );
+    let url = "";
+    let keyword = fileName.trim();
+    if (nextSearchUrl) {
+      url = nextSearchUrl;
+    } else if (folderIdState) {
+      url = `https://graph.microsoft.com/v1.0/me/drive/items/${folderIdState}/children/?$top=10`;
+    } else {
+      url = `https://graph.microsoft.com/v1.0/me/drive/root/children?$top=10`;
+    }
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const data = await response.json();
+    const filteredFiles = [];
+    setNextSearchUrl(data["@odata.nextLink"]);
+    console.log(data.value);
+    for (const file of data.value) {
+      if (!file.file) continue;
 
-      const data = await response.json();
-      console.log(data);
-      setFiles([...data.value]);
-    } catch (error) {
-      console.error("Error searching files:", error);
+      const res = await fetch(file["@microsoft.graph.downloadUrl"]);
+      const arrayBuffer = await res.arrayBuffer();
+      console.log(arrayBuffer);
+      const buffer = Buffer.from(arrayBuffer);
+      console.log(buffer);
+      const fileType = file.file?.mimeType.split("/")[1];
+      let text = "";
+      if (fileType === "pdf") {
+        const data = await pdfParse(buffer);
+        text = data.text;
+      } else if (fileType === "docx" || fileType.includes("document")) {
+        const result = await mammoth.extractRawText({ buffer });
+        text = result.value;
+      } else if (fileType === "txt") {
+        text = buffer.toString("utf-8");
+      }
+      if (
+        text.toLowerCase().includes(keyword.toLowerCase()) ||
+        file.name.toLowerCase().includes(keyword.toLowerCase())
+      ) {
+        filteredFiles.push(file);
+      }
+    }
+    if (filteredFiles.length < 10) {
+      const nextSearchUrl = data["@odata.nextLink"];
+      if (nextSearchUrl) {
+        await searchFiles();
+      }
     }
   }
 
