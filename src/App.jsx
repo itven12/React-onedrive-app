@@ -136,9 +136,8 @@ export default function App() {
       }
     } catch (err) {
       console.error("Error fetching files:", err);
-    } finally {
-      setLoadingAllFiles(false);
     }
+    setLoadingAllFiles(false);
 
     console.log(allFiles);
   }
