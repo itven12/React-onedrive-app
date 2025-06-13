@@ -23,7 +23,7 @@ export default function HomePage({
 
   React.useEffect(() => {
     if (!session.isLoggedIn()) {
-      navigate("/");
+      navigate("/React-onedrive-app/");
       resetData();
     } else {
       setAccount(JSON.parse(localStorage.getItem("account")));
