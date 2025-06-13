@@ -17,6 +17,7 @@ export default function HomePage({
   session,
   resetData,
   loadMoreFiles,
+  loadingAllFiles,
 }) {
   const navigate = useNavigate();
 
@@ -77,7 +78,11 @@ export default function HomePage({
       <button className="logout-button" onClick={logout}>
         Logout
       </button>
-      <SearchBar setFileName={setFileName} handleSearch={searchFiles} />{" "}
+      <SearchBar
+        setFileName={setFileName}
+        handleSearch={searchFiles}
+        loadingAllFiles={loadingAllFiles}
+      />{" "}
       <div className="categories" onClick={handleCategoryChange}>
         <button className="category-button active" value={"all"}>
           All

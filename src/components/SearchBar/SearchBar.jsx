@@ -1,6 +1,11 @@
 import "./SearchBar.css";
 
-export default function SearchBar({ setFileName, handleSearch }) {
+export default function SearchBar({
+  setFileName,
+  handleSearch,
+  loadingAllFiles,
+}) {
+  console.log(loadingAllFiles);
   return (
     <div className="search-bar">
       <input
@@ -10,9 +15,11 @@ export default function SearchBar({ setFileName, handleSearch }) {
         className="file-name-input"
         onChange={(event) => setFileName(event.target.value)}
       />
-      <button className="search-button" type="submit" onClick={handleSearch}>
-        Search
-      </button>
+      {loadingAllFiles ? null : (
+        <button className="search-button" type="submit" onClick={handleSearch}>
+          Search
+        </button>
+      )}
     </div>
   );
 }
