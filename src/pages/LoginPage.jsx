@@ -6,7 +6,7 @@ export default function LoginPage({ account, setAccount, session }) {
 
   if (session.isLoggedIn()) {
     setAccount(JSON.parse(localStorage.getItem("account")));
-    navigate("/home");
+    navigate("/React-onedrive-app/home");
   }
 
   function handleLogin() {
